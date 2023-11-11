@@ -3,27 +3,30 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
 class UserManager(BaseUserManager):
-    def create_user(self, first_name, last_name, email, phone_number, adress, password=None):
+    def create_user(self, first_name, last_name, username, email, password=None):
         if not email:
-            raise ValueError('User must have an email')
+            raise ValueError('El usuario debe tener una correo electrónico.')
+
+        if not username:
+            raise ValueError('El usuario debe tener un Username.')
 
         user = self.model(
-            email = self.normalize_email(email),
-            first_name = first_name,
-            last_name = last_name,
-            phone_number = phone_number,
-            adress = adress,
+            email=self.normalize_email(email),
+            username=username,
+            first_name=first_name,
+            last_name=last_name
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, first_name, last_name, email, password=None):
+    def create_superuser(self, first_name, last_name, username, email, password=None):
         user = self.create_user(
-            email = self.normalize_email(email),
-            password = password,
-            first_name = first_name,
-            last_name = last_name,
+            email=self.normalize_email(email),
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
         )
         user.is_admin = True
         user.is_active = True
@@ -34,22 +37,22 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    VENDOR = 1
+    RESTAURANT = 1
     CUSTOMER = 2
 
     ROLE_CHOICE = (
-        (VENDOR, 'Vendor'),
-        (CUSTOMER, 'Customer'),
+        (RESTAURANT, 'Restaurant'),
+        (CUSTOMER, 'Customer')
     )
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.EmailField(max_length=100, unique=True)
-    phone_number = models.BigIntegerField(blank=True, null=True)
-    adress = models.CharField(max_length=80)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    username = models.CharField(max_length=32, unique=True)
+    email = models.EmailField(max_length=64, unique=True)
+    phone_number = models.CharField(max_length=10, blank=True)
     role = models.PositiveSmallIntegerField(choices=ROLE_CHOICE, blank=True, null=True)
 
-    # required fields
+    # Datos requeridos
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now_add=True)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -60,7 +63,7 @@ class User(AbstractBaseUser):
     is_superadmin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'adress']
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     objects = UserManager()
 
@@ -73,9 +76,17 @@ class User(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return True
 
-    def get_role(self):
-        if self.role == 1:
-            user_role = 'Vendor'
-        elif self.role == 2:
-            user_role = 'Customer'
-        return user_role
+
+class UserProfile(models.Model):
+    user = OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='users/profile_pictures', blank=True, null=True)
+    address_line_1 = models.CharField(max_length=50, blank=True, null=True)
+    country = models.CharField(max_length=15, blank=True, null=True)
+    city = models.CharField(max_length=15, blank=True, null=True)
+    latitude = models.CharField(max_length=20, blank=True, null=True)
+    longitude = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user.email
