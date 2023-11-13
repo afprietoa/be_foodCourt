@@ -1,3 +1,4 @@
+{% load static %}
 <!--Main Wrapper-->
 <div class="wrapper">
     <!-- Header Start -->
@@ -8,8 +9,8 @@
                     <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
                         <div class="logo">
                             <figure>
-                                <a href="index.html" class="light-logo">
-                                    <img src="assets/extra-images/main-logo.png" alt="FoodBakery">
+                                <a href="{% url 'home' %}" class="light-logo">
+                                    <img src="{% static 'logo/foodOnlineLogo.png' %}" alt="FoodOnline" width="250">
                                 </a>
                             </figure>
                         </div>
