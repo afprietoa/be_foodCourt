@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from menu.forms import CategoryForm, FoodItemForm
 from .forms import VendorForm
-# from accounts.forms import UserProfileForm
+from accounts.forms import UserProfileForm
 
 from accounts.models import UserProfile
 from .models import Vendor

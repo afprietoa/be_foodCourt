@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
+
 # Create your models here.
 class UserManager(BaseUserManager):
     def create_user(self, first_name, last_name, username, email, password=None):
@@ -89,6 +90,8 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to='users/profile_pictures', blank=True, null=True)
     cover_photo = models.ImageField(upload_to='users/cover_photos', blank=True, null=True)
     address = models.CharField(max_length=250, blank=True, null=True)
+    # address_line_1 = models.CharField(max_length=50, blank=True, null=True)
+    # address_line_2 = models.CharField(max_length=50, blank=True, null=True)
     country = models.CharField(max_length=15, blank=True, null=True)
     state = models.CharField(max_length=15, blank=True, null=True)
     city = models.CharField(max_length=15, blank=True, null=True)
