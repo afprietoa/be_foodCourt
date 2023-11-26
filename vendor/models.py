@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User, UserProfile
+from accounts.utils import send_notification
 
 
 class Vendor(models.Model):
