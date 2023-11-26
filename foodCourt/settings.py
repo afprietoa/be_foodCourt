@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'vendor',
+    'menu',
+    'marketplace',
 ]
 
 MIDDLEWARE = [
@@ -151,4 +153,4 @@ EMAIL_HOST_PASSWORD = 'gjmn raqj hoge qpjl'
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'RestoManage <django.restomanage@gmail.com>'
 
-GOOGLE_API_KEY = config('GOOGLE_API_KEY')
+GOOGLE_API_KEY = ('')
