@@ -8,14 +8,12 @@ from django.contrib import messages
 from accounts.views import check_role_vendor
 from django.contrib.auth.decorators import login_required, user_passes_test
 
+
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
 def vprofile(request):
     profile = get_object_or_404(UserProfile, user=request.user)
     vendor = get_object_or_404(Vendor, user=request.user)
-    profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
-    vendor_form = VendorForm(request.POST, request.FILES, instance=vendor)
-    vendor_form = VendorForm()
 
     if request.method == 'POST':
         profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
@@ -29,7 +27,7 @@ def vprofile(request):
             print(profile_form.errors)
             print(vendor_form.errors)
     else:
-        profile_form = UserProfileForm(instance = profile)
+        profile_form = UserProfileForm(instance=profile)
         vendor_form = VendorForm(instance=vendor)
 
     context = {

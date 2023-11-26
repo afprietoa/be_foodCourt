@@ -14,6 +14,7 @@ from .utils import send_verification_email
 from django.core.exceptions import PermissionDenied
 from vendor.models import Vendor
 
+
 # Restrict the vendor from accessing the customer page
 def check_role_vendor(user):
     if user.role == 1:
@@ -183,7 +184,8 @@ def vendorDashboard(request):
     context = {
         'vendor': vendor,
     }
-    return render(request, 'accounts/custDashboard.html', context)
+    return render(request, 'accounts/vendorDashboard.html', context)
+
 
 def forgot_password(request):
     if request.method == 'POST':
