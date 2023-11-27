@@ -17,15 +17,10 @@ def marketplace(request):
 def vendor_detail(request, vendor_slug):
     vendor = get_object_or_404(Vendor, vendor_slug=vendor_slug)
 
-    categories = Category.objects.filter(vendor=vendor).prefetch_related(
-        Prefetch(
-            'fooditems',
-            queryset= FoodItem.objects.filter(is_available=True)
-        )
-    )
-
+    categories = Category.objects.filter(vendor=vendor)
+    
     context = {
         'vendor': vendor,
         'categories': categories,
     }
-    return render(request, 'marketplace/vendor_detail.html')
+    return render(request, 'marketplace/vendor_detail.html', context)
