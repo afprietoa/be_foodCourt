@@ -60,6 +60,7 @@ def add_to_cart(request, food_id):
     else:
         return JsonResponse({'status': 'login_required', 'message': 'Please login to continue'})
 
+
 def decrease_cart(request, food_id):
     if request.user.is_authenticated:
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -86,6 +87,7 @@ def decrease_cart(request, food_id):
     else:
         return JsonResponse({'status': 'login_required', 'message': 'Please login to continue'})
 
+
 @login_required(login_url = 'login')
 def cart(request):
     cart_items = Cart.objects.filter(user=request.user).order_by('created_at')
@@ -108,6 +110,7 @@ def delete_cart(request, cart_id):
 
         else:
             return JsonResponse({'status': 'Failed', 'message': 'Invalid request'})
+
 
 def search(request):
     address = request.GET['address']
