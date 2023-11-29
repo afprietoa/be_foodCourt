@@ -71,21 +71,19 @@ function onPlaceChanged (){
 
 }
 
-
 $(document).ready(function(){
     // add to cart
     $('.add_to_cart').on('click', function(e){
         e.preventDefault();
-
+        
         food_id = $(this).attr('data-id');
         url = $(this).attr('data-url');
-
-
+        
+       
         $.ajax({
             type: 'GET',
             url: url,
             success: function(response){
-                console.log(response)
                 if(response.status == 'login_required'){
                     swal(response.message, '', 'info').then(function(){
                         window.location = '/login';
@@ -99,7 +97,7 @@ $(document).ready(function(){
                     // subtotal, tax and grand total
                     applyCartAmounts(
                         response.cart_amount['subtotal'],
-                        response.cart_amount['tax'],
+                        response.cart_amount['tax_dict'],
                         response.cart_amount['grand_total']
                     )
                 }
@@ -118,17 +116,16 @@ $(document).ready(function(){
     // decrease cart
     $('.decrease_cart').on('click', function(e){
         e.preventDefault();
-
+        
         food_id = $(this).attr('data-id');
         url = $(this).attr('data-url');
         cart_id = $(this).attr('id');
-
-
+        
+        
         $.ajax({
             type: 'GET',
             url: url,
             success: function(response){
-                console.log(response)
                 if(response.status == 'login_required'){
                     swal(response.message, '', 'info').then(function(){
                         window.location = '/login';
@@ -141,7 +138,7 @@ $(document).ready(function(){
 
                     applyCartAmounts(
                         response.cart_amount['subtotal'],
-                        response.cart_amount['tax'],
+                        response.cart_amount['tax_dict'],
                         response.cart_amount['grand_total']
                     )
 
@@ -149,8 +146,8 @@ $(document).ready(function(){
                         removeCartItem(response.qty, cart_id);
                         checkEmptyCart();
                     }
-
-                }
+                    
+                } 
             }
         })
     })
@@ -159,16 +156,15 @@ $(document).ready(function(){
     // DELETE CART ITEM
     $('.delete_cart').on('click', function(e){
         e.preventDefault();
-
+        
         cart_id = $(this).attr('data-id');
         url = $(this).attr('data-url');
-
-
+        
+        
         $.ajax({
             type: 'GET',
             url: url,
             success: function(response){
-                console.log(response)
                 if(response.status == 'Failed'){
                     swal(response.message, '', 'error')
                 }else{
@@ -177,13 +173,13 @@ $(document).ready(function(){
 
                     applyCartAmounts(
                         response.cart_amount['subtotal'],
-                        response.cart_amount['tax'],
+                        response.cart_amount['tax_dict'],
                         response.cart_amount['grand_total']
                     )
 
                     removeCartItem(0, cart_id);
                     checkEmptyCart();
-                }
+                } 
             }
         })
     })
@@ -195,7 +191,7 @@ $(document).ready(function(){
                 // remove the cart item element
                 document.getElementById("cart-item-"+cart_id).remove()
             }
-
+        
     }
 
     // Check if the cart is empty
@@ -208,11 +204,16 @@ $(document).ready(function(){
 
 
     // apply cart amounts
-    function applyCartAmounts(subtotal, tax, grand_total){
+    function applyCartAmounts(subtotal, tax_dict, grand_total){
         if(window.location.pathname == '/cart/'){
             $('#subtotal').html(subtotal)
-            $('#tax').html(tax)
             $('#total').html(grand_total)
+
+            for(key1 in tax_dict){
+                for(key2 in tax_dict[key1]){
+                    $('#tax-'+key1).html(tax_dict[key1][key2])
+                }
+            }
         }
     }
 
@@ -225,8 +226,6 @@ $(document).ready(function(){
         var is_closed = document.getElementById('id_is_closed').checked
         var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
         var url = document.getElementById('add_hour_url').value
-
-        console.log(day, from_hour, to_hour, is_closed, csrf_token)
 
         if(is_closed){
             is_closed = 'True'
@@ -254,7 +253,7 @@ $(document).ready(function(){
                         }else{
                             html = '<tr id="hour-'+response.id+'"><td><b>'+response.day+'</b></td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#" class="remove_hour" data-url="/vendor/opening-hours/remove/'+response.id+'/">Remove</a></td></tr>';
                         }
-
+                        
                         $(".opening_hours").append(html)
                         document.getElementById("opening_hours").reset();
                     }else{
@@ -271,7 +270,7 @@ $(document).ready(function(){
     $(document).on('click', '.remove_hour', function(e){
         e.preventDefault();
         url = $(this).attr('data-url');
-
+        
         $.ajax({
             type: 'GET',
             url: url,
@@ -282,6 +281,4 @@ $(document).ready(function(){
             }
         })
     })
-
-   // document ready close
 });
