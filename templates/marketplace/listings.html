@@ -35,7 +35,11 @@
                                                     {% endif %}
                                                 </a>
                                             </figure>
+                                            {% if vendor.is_open %}
+                                            <span class="restaurant-status open"><em class="bookmarkRibbon"></em>Open</span>
+                                            {% else %}
                                             <span class="restaurant-status close"><em class="bookmarkRibbon"></em>Close</span>
+                                            {% endif %}
                                         </div>
                                         <div class="text-holder">
 
@@ -48,9 +52,9 @@
                                             <span><small class="text-muted">{{ vendor.user_profile.address }}</small></span>
                                             {% endif %}
 
-                                            {% if source_location%}
+                                            {% if source_location %}
                                             <br>
-                                            <span><small><b>{{ vendor.kms }}km</b> away from {{ source_location }}</small></span>
+                                            <span><small><b>{{vendor.kms}}km</b> away from {{source_location}}</small></span>
                                             {% endif %}
                                         </div>
                                         <div class="list-option">
