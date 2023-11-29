@@ -1,13 +1,17 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render, redirect
 
 from marketplace.context_processors import get_cart_counter, get_cart_amounts
 from marketplace.models import Cart
 from menu.models import Category, FoodItem
 
 from vendor.models import Vendor
-from django.db.models import Prefetch, Q
+from django.db.models import Q
+
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import D
+from django.contrib.gis.db.models.functions import Distance
 
 
 def marketplace(request):
@@ -39,20 +43,24 @@ def vendor_detail(request, vendor_slug):
 
 def add_to_cart(request, food_id):
     if request.user.is_authenticated:
-        if request.headers.get('x-requested-with')=='XMLHttpRequest':
-            #Check if the food item exists
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Check if the food item exists
             try:
                 fooditem = FoodItem.objects.get(id=food_id)
-                #check if the user already added that food to the cart
+                # check if the user already added that food to the cart
                 try:
                     chkCart = Cart.objects.get(user=request.user, fooditem=fooditem)
-                    #Increase cart quantity
+                    # Increase cart quantity
                     chkCart.quantity += 1
                     chkCart.save()
-                    return JsonResponse({'status': 'Success', 'message': 'Increased cart quantity', 'cart_counter': get_cart_counter(request), 'qty':chkCart.quantity, 'cart_amount':get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'message': 'Increased cart quantity',
+                                         'cart_counter': get_cart_counter(request), 'qty': chkCart.quantity,
+                                         'cart_amount': get_cart_amounts(request)})
                 except:
                     chkCart = Cart.objects.create(user=request.user, fooditem=fooditem, quantity=1)
-                    return JsonResponse({'status': 'Success', 'message': 'Added the food to the cart', 'cart_counter': get_cart_counter(request), 'qty':chkCart.quantity, 'cart_amount':get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'message': 'Added the food to the cart',
+                                         'cart_counter': get_cart_counter(request), 'qty': chkCart.quantity,
+                                         'cart_amount': get_cart_amounts(request)})
             except:
                 return JsonResponse({'status': 'Failed', 'message': 'This food does not exist'})
         else:
@@ -77,7 +85,8 @@ def decrease_cart(request, food_id):
                     else:
                         chkCart.delete()
                         chkCart.quantity = 0
-                    return JsonResponse({'status': 'Success', 'cart_counter': get_cart_counter(request), 'qty': chkCart.quantity, 'cart_amount':get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'cart_counter': get_cart_counter(request),
+                                         'qty': chkCart.quantity, 'cart_amount': get_cart_amounts(request)})
                 except:
                     return JsonResponse({'status': 'Failed', 'message': 'You do not have this item in your cart'})
             except:
@@ -88,7 +97,7 @@ def decrease_cart(request, food_id):
         return JsonResponse({'status': 'login_required', 'message': 'Please login to continue'})
 
 
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def cart(request):
     cart_items = Cart.objects.filter(user=request.user).order_by('created_at')
     context = {
@@ -96,15 +105,18 @@ def cart(request):
     }
     return render(request, 'marketplace/cart.html', context)
 
+
 def delete_cart(request, cart_id):
     if request.user.is_authenticated:
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             try:
-                #check if cart item exists
-                cart_item = Cart.objects.get(user=request.user,id=cart_id)
+                # check if cart item exists
+                cart_item = Cart.objects.get(user=request.user, id=cart_id)
                 if cart_item:
                     cart_item.delete()
-                    return JsonResponse({'status': 'Success', 'message': 'Cart item deleted', 'cart_counter': get_cart_counter(request), 'cart_amount':get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success', 'message': 'Cart item deleted',
+                                         'cart_counter': get_cart_counter(request),
+                                         'cart_amount': get_cart_amounts(request)})
             except:
                 return JsonResponse({'status': 'Failed', 'message': 'Cart item does not exist'})
 
@@ -113,21 +125,33 @@ def delete_cart(request, cart_id):
 
 
 def search(request):
-    address = request.GET['address']
-    latitude = request.GET['lat']
-    longitude = request.GET['lng']
-    radius = request.GET['radius']
-    keyword = request.GET['keyword']
+    if not 'address' in request.GET:
+        return redirect('marketplace')
+    else:
+        address = request.GET['address']
+        latitude = request.GET['lat']
+        longitude = request.GET['lng']
+        radius = request.GET['radius']
+        keyword = request.GET['keyword']
 
-    #Get vendor ids that has the food item user is looking for
-    fetch_vendors_by_fooditem = FoodItem.objects.filter(food_title__icontains=keyword, is_available=True).values_list('vendor', flat=True)
+        # Get vendor ids that has the food item user is looking for
+        fetch_vendors_by_fooditem = (FoodItem.objects.filter(food_title__icontains=keyword, is_available=True).
+                                     values_list('vendor', flat=True))
 
-    vendors = Vendor.objects.filter(Q(id__in=fetch_vendors_by_fooditem) | Q(vendor_name__icontains=keyword, is_approved=True, user__is_active=True))
+        vendors = Vendor.objects.filter(Q(id__in=fetch_vendors_by_fooditem) | Q(vendor_name__icontains=keyword,
+                                                                                is_approved=True, user__is_active=True))
+        if latitude and longitude and radius:
+            pnt = GEOSGeometry('POINT(%s %s)' % (longitude, latitude))
+            vendors = Vendor.objects.filter(Q(id__in=fetch_vendors_by_fooditem) | Q(vendor_name__icontains=keyword, is_approved=True, user__is_active=True),
+                                            user_profile__location__distance_lte=(pnt, D(km=radius))).annotate(distance=Distance("user_profile__location", pnt)).order_by("distance")
 
-    vendors_count = vendors.count()
-    context = {
-        'vendors': vendors,
-        'vendors_count': vendors_count,
-    }
+        for v in vendors:
+            v.kms = round(v.distance.km)
+        vendors_count = vendors.count()
+        context = {
+            'vendors': vendors,
+            'vendors_count': vendors_count,
+            'source_location': address,
+        }
 
-    return render(request, 'marketplace/listings.html', context)
+        return render(request, 'marketplace/listings.html', context)
