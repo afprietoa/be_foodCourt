@@ -83,7 +83,7 @@ def registerVendor(request):
         # store the data and create the user
         form = UserForm(request.POST)
         v_form = VendorForm(request.POST, request.FILES)
-        if form.is_valid() and v_form.is_valid:
+        if form.is_valid() and v_form.is_valid():
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             username = form.cleaned_data['username']
@@ -134,10 +134,10 @@ def activate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, 'Felicidades! has activado tu cuenta')
+        messages.success(request, 'Account activated!')
         return redirect("myAccount")
     else:
-        messages.error(request, 'Enlace de activacion invalido')
+        messages.error(request, 'Invalid activation link.')
         return redirect("myAccount")
 
 

@@ -163,6 +163,6 @@ DEFAULT_FROM_EMAIL = 'RestoManage <django.restomanage@gmail.com>'
 
 GOOGLE_API_KEY = config('GOOGLE_API_KEY')
 
-os.environ['PATH'] = os.path.join(BASE_DIR, 'venv11/Lib/site-packages/osgeo') + ';' + os.environ['PATH']
-os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, 'venv11/Lib/site-packages/osgeo/data/proj') + ';' + os.environ['PATH']
-GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, 'venv11/Lib/site-packages/osgeo/gdal304.dll')
+os.environ['PATH'] = os.path.join(BASE_DIR, 'venv/Lib/site-packages/osgeo') + ';' + os.environ['PATH']
+os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, 'venv/Lib/site-packages/osgeo/data/proj') + ';' + os.environ['PATH']
+GDAL_LIBRARY_PATH = os.path.join(BASE_DIR, 'venv/Lib/site-packages/osgeo/gdal304.dll')
